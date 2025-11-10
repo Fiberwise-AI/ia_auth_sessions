@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ia-auth-sessions"
+version = "0.1.0"
+description = "Industry-standard session-based authentication for FastAPI with secure cookies"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "IA Modules Team"}
+]
+keywords = ["fastapi", "authentication", "sessions", "cookies", "security"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Framework :: FastAPI",
+]
+
+dependencies = [
+    "fastapi>=0.104.0",
+    "itsdangerous>=2.1.0",  # Industry standard for secure session signing
+    "passlib[bcrypt]>=1.7.4",  # Industry standard for password hashing
+    "bcrypt>=4.0.0,<5.0.0",  # Pin to 4.x for passlib compatibility
+    "nexusql>=0.1.0",  # Database abstraction
+    "python-multipart>=0.0.6",  # For form data
+    "pydantic>=2.0.0",
+    "pydantic-settings>=2.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.1.0",
+    "httpx>=0.24.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/yourusername/ia_auth_sessions"
+Documentation = "https://github.com/yourusername/ia_auth_sessions/blob/main/README.md"
+Repository = "https://github.com/yourusername/ia_auth_sessions"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["ia_auth_sessions*"]
+exclude = ["tests*"]
