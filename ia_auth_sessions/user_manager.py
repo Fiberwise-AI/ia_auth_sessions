@@ -2,7 +2,7 @@
 User management with secure password handling.
 """
 from typing import Optional, Dict, Any
-from datetime import datetime
+from datetime import datetime, UTC
 import uuid
 from nexusql import DatabaseManager
 from .security import hash_password, verify_password
@@ -63,7 +63,7 @@ class UserManager:
 
         # Create user
         user_id = str(uuid.uuid4())
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
 
         # Insert user
         self.db.execute(

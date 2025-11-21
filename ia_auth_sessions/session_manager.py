@@ -2,7 +2,7 @@
 Session management using signed cookies and database storage.
 """
 from typing import Optional, Dict, Any
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 import json
 import secrets
 from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
@@ -57,10 +57,10 @@ class SessionManager:
         # Generate cryptographically secure random session ID
         session_id = secrets.token_urlsafe(32)
 
-        expires_at = datetime.utcnow() + timedelta(seconds=self.max_age)
+        expires_at = datetime.now(UTC) + timedelta(seconds=self.max_age)
 
         # Store session in database
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         query = """
         INSERT INTO sessions (id, user_id, expires_at, metadata, created_at)
         VALUES (:id, :user_id, :expires_at, :metadata, :created_at)
@@ -109,20 +109,19 @@ class SessionManager:
 
         # Get session from database
         query = """
-        SELECT s.id, s.user_id, s.expires_at, s.metadata,
-               u.id, u.email, u.username, u.full_name, u.is_active, u.is_verified, u.created_at, u.last_login
+        SELECT s.user_id, u.email, u.username, u.full_name, u.is_active, u.is_verified, u.created_at, u.last_login
         FROM sessions s
         JOIN users u ON s.user_id = u.id
         WHERE s.id = :session_id AND s.expires_at > :now
         """
-        result = self.db.fetch_one(query, {"session_id": session_id, "now": datetime.utcnow()})
+        result = self.db.fetch_one(query, {"session_id": session_id, "now": datetime.now(UTC)})
 
         if not result:
             return None
 
         # Return user data
         return {
-            "id": result["id"],
+            "id": result["user_id"],
             "email": result["email"],
             "username": result["username"],
             "full_name": result["full_name"],
@@ -143,11 +142,17 @@ class SessionManager:
         Returns:
             True if session was destroyed, False if not found
         """
-        result = self.db.execute(
+        # Check if session exists before deleting
+        existing = self.db.fetch_one(
+            "SELECT id FROM sessions WHERE id = :session_id", {"session_id": session_id}
+        )
+        if not existing:
+            return False
+
+        self.db.execute(
             "DELETE FROM sessions WHERE id = :session_id", {"session_id": session_id}
         )
-        # Result may be int (rowcount) or list depending on database adapter
-        return bool(result) if isinstance(result, (int, list)) else False
+        return True
 
     async def destroy_all_user_sessions(self, user_id: str) -> int:
         """
@@ -159,13 +164,18 @@ class SessionManager:
         Returns:
             Number of sessions destroyed
         """
-        result = self.db.execute(
-            "DELETE FROM sessions WHERE user_id = :user_id", {"user_id": user_id}
+        # Count sessions before deletion
+        sessions = self.db.execute(
+            "SELECT id FROM sessions WHERE user_id = :user_id", {"user_id": user_id}
         )
-        # Result may be int (rowcount) or list depending on database adapter
-        if isinstance(result, list):
-            return len(result)
-        return result if isinstance(result, int) else 0
+        count = len(sessions) if isinstance(sessions, list) else 0
+
+        if count > 0:
+            self.db.execute(
+                "DELETE FROM sessions WHERE user_id = :user_id", {"user_id": user_id}
+            )
+
+        return count
 
     async def cleanup_expired_sessions(self) -> int:
         """
@@ -176,7 +186,15 @@ class SessionManager:
         Returns:
             Number of sessions cleaned up
         """
-        result = self.db.execute(
-            "DELETE FROM sessions WHERE expires_at < :now", {"now": datetime.utcnow()}
+        # Count expired sessions
+        sessions = self.db.execute(
+            "SELECT id FROM sessions WHERE expires_at < :now", {"now": datetime.now(UTC)}
         )
-        return result
+        count = len(sessions) if isinstance(sessions, list) else 0
+
+        if count > 0:
+            self.db.execute(
+                "DELETE FROM sessions WHERE expires_at < :now", {"now": datetime.now(UTC)}
+            )
+
+        return count

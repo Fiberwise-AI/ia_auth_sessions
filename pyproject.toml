@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "Industry-standard session-based authentication for FastAPI with secure cookies"
 readme = "README.md"
 requires-python = ">=3.10"
-license = {text = "MIT"}
+license = "MIT"
 authors = [
     {name = "IA Modules Team"}
 ]
@@ -16,7 +16,6 @@ keywords = ["fastapi", "authentication", "sessions", "cookies", "security"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -52,3 +51,10 @@ Repository = "https://github.com/yourusername/ia_auth_sessions"
 where = ["."]
 include = ["ia_auth_sessions*"]
 exclude = ["tests*"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+filterwarnings = [
+    "ignore::DeprecationWarning:nexusql.*:",
+]

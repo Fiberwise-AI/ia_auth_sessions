@@ -54,9 +54,9 @@ async def test_password_is_hashed(db_manager):
     )
 
     # Get hashed password from DB
-    result = await db_manager.fetch_one(
-        "SELECT hashed_password FROM users WHERE email = ?",
-        ["test@example.com"]
+    result = db_manager.fetch_one(
+        "SELECT hashed_password FROM users WHERE email = :email",
+        {"email": "test@example.com"}
     )
 
     # Should be hashed (bcrypt starts with $2b$)
@@ -169,3 +169,66 @@ async def test_change_password(db_manager):
     # New password should work
     auth_user = await user_mgr.authenticate_user("test@example.com", "NewPassword456")
     assert auth_user is not None
+
+
+@pytest.mark.asyncio
+async def test_change_password_wrong_old_password(db_manager):
+    """Test that password change fails with wrong old password."""
+    user_mgr = UserManager(db_manager)
+
+    user = await user_mgr.create_user(
+        email="test@example.com",
+        username="testuser",
+        password="CorrectPassword123"
+    )
+
+    # Try to change with wrong old password
+    success = await user_mgr.change_password(
+        user["id"],
+        "WrongOldPassword",
+        "NewPassword456"
+    )
+    assert success is False
+
+    # Original password should still work
+    auth_user = await user_mgr.authenticate_user("test@example.com", "CorrectPassword123")
+    assert auth_user is not None
+
+
+@pytest.mark.asyncio
+async def test_change_password_nonexistent_user(db_manager):
+    """Test that password change fails for nonexistent user."""
+    user_mgr = UserManager(db_manager)
+
+    success = await user_mgr.change_password(
+        "nonexistent-id",
+        "OldPassword",
+        "NewPassword"
+    )
+    assert success is False
+
+
+@pytest.mark.asyncio
+async def test_get_user_by_email(db_manager):
+    """Test getting user by email."""
+    user_mgr = UserManager(db_manager)
+
+    created_user = await user_mgr.create_user(
+        email="test@example.com",
+        username="testuser",
+        password="password"
+    )
+
+    user = await user_mgr.get_user_by_email("test@example.com")
+    assert user is not None
+    assert user["id"] == created_user["id"]
+    assert user["email"] == "test@example.com"
+
+
+@pytest.mark.asyncio
+async def test_get_user_by_email_not_found(db_manager):
+    """Test getting nonexistent user by email."""
+    user_mgr = UserManager(db_manager)
+
+    user = await user_mgr.get_user_by_email("nonexistent@example.com")
+    assert user is None

@@ -30,6 +30,15 @@ For local development:
 pip install -e ../ia_auth_sessions
 ```
 
+## Publishing
+
+See [PUBLISHING.md](PUBLISHING.md) for instructions on publishing to PyPI.
+
+To test the build locally:
+```bash
+python test_publish.py --skip-tests
+```
+
 ## Quick Start
 
 ```python
