@@ -5,7 +5,8 @@ Standard session-based authentication for FastAPI applications using secure sign
 ## Features
 
 - **Signed Cookies**: HMAC-SHA256 via `itsdangerous` prevents tampering
-- **Bcrypt Password Hashing**: Industry standard with automatic salt generation
+- **Bcrypt Password Hashing**: Industry standard with automatic salt generation via `pwdlib`
+- **Python 3.13+ Ready**: Uses modern `pwdlib` instead of deprecated `passlib`
 - **Secure Cookie Flags**: HttpOnly, Secure, SameSite protection
 - **Session Management**: Create, validate, destroy, and auto-cleanup
 - **Database Agnostic**: PostgreSQL and SQLite via NexusQL

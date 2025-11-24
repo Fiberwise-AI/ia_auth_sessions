@@ -1,11 +1,14 @@
 """
-Security utilities using industry-standard libraries.
+Security utilities using modern password hashing.
+
+Uses pwdlib, a maintained modern alternative to passlib that works with Python 3.13+
 """
-from passlib.context import CryptContext
+from pwdlib import PasswordHash
+from pwdlib.hashers.bcrypt import BcryptHasher
 
 # Use bcrypt - industry standard for password hashing
 # Automatically handles salting and uses strong work factor
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_hash = PasswordHash((BcryptHasher(),))
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -19,7 +22,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     Returns:
         True if password matches, False otherwise
     """
-    return pwd_context.verify(plain_password, hashed_password)
+    return pwd_hash.verify(plain_password, hashed_password)
 
 
 def hash_password(password: str) -> str:
@@ -32,4 +35,4 @@ def hash_password(password: str) -> str:
     Returns:
         Bcrypt hashed password with automatic salt
     """
-    return pwd_context.hash(password)
+    return pwd_hash.hash(password)
