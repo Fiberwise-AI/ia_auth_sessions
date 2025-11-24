@@ -6,7 +6,7 @@ Thank you for your interest in contributing!
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/ia_auth_sessions.git
+git clone https://github.com/fiberwise-ai/ia_auth_sessions.git
 cd ia_auth_sessions
 
 # Install in editable mode with dev dependencies
